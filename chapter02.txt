@@ -8,7 +8,155 @@
        该命令将创建一个名为.git的子目录，这个子目录包含你的初始化的仓库中所有的必须文件。
        可以通过git add 文件名 来向暂存区添加一个或多个文件，利用git commit来把暂存区的文件列表提交到git仓库，至于怎么查看暂存区的文件俩表以后讨论。
      $git add *.txt
-     $git add readme
-     $git commit -m "init project version"
+     $git commit -m 'this is first commit'
+   2.1.1.2 克隆现有仓库
+       克隆仓库的命令格式是git clone [url]。比如，要克隆git的可链接库libgit2，可以用以下命令：
+     $git clone https://github.com/libgit2/libgit2
+         这条命令会在当前目录下创建一个名为”libgit2“的目录,并且在这个目录下初始化一个.git文件夹，从远程仓库拉取所有数据放入.git文件夹，然后从中读取最新版本的文件的拷贝。
      
+     如果你想自定义本地仓库的名字,你可以使用如下命令：
+     $git clone https://github.com/libgit2/libgit2 mylibgit
+         这样会在本地创建仓库mylibgit。
+     
+     git支持多种数据传输协议。上面使用的是https:://协议，不过你也可以使用git://协议或者使用ssh传输协议，比如user@server：path/to/repo.git。这一部分会在服务器上搭建git介绍。
+ 
+2.2 记录每次更新到仓库
+   2.2.1 记录每次更新到仓库
+      通过之前的部分现在手里有了一个真实的git仓库，工作目录下每一个文件只有两种状态：
+        （1）已跟踪：那些被纳入了版本控制的文件。
+        （2）未跟踪：那些未被纳入到版本控制的文件。
+   2.2.2 检查当前文件状态
+      要查看哪些文件处于什么状态，可以用git status命令。如果在克隆仓库后立即使用此命令，会看到类似这样的输出:
+    $git status
+    On branch master
+    nothing to commit,working directory clean
+      这就说明我们工作目录中并没有在上次提交后更改过的文件。
+   
+      现在，创建一个README文件。如果之前并不存在这个文件，使用git status 命令，将看到一个新的未跟踪文件：
+    $echo 'my gitnotes' > README
+    $git status
+    On branch master
+    Untracked files：
+        （use ”git add <file>..."to include in what will be commited)
+         
+         README
+    nothing added to commit but untracked files present (use "git add"to track)
+ 
+  2.2.3 跟踪新文件
+       使用git add开始跟踪一个文件。所以要跟踪README 命令如下：
+    $git add README
+      此时在运行git status命令，会看到README文件已被跟踪，并处于暂存状态：
+    $git status
+    On branch master
+    Changes to be committed:
+        (use "git reset HEAD <file>..." to unstage)
+       
+          new file: README
+       这样就表示README已经处于暂存状态。
+
+  2.2.4 暂存已修改文件
+        现在我们来修改一个已被跟踪的文件。如果你修改了一个名为Contributing.md的已被跟踪的文件,然后运行git status，会发生
+     $git status
+     On branch master
+     Changes to be commited:
+       (use "git reset HEAD <file>..." to unstage)
+          
+         new file:   README
+
+     Changes not staged for commit:
+       (use "git add <file>..." to update what will be committed)
+       (use "git checkout -- <file>..." to discard changes in working directory)
+
+         modified:   CONTRIBUTING.md
+
+        ONTRIBUTING.md 出现在 Changes not staged for commit 这行下面，说明已跟踪文件的内容发生了变化，但还没有放到暂存区。可以用git add把文件放到暂存区。将"CONTRIBUTING.md"放到暂存区，然后再看看 git status 的输出：
     
+     $git add  CONTRIBUTING.md
+     $ git status
+     On branch master
+     Changes to be committed:
+        (use "git reset HEAD <file>..." to unstage)
+
+           new file:   README
+           modified:   CONTRIBUTING.md
+     这就说明另个文件已经放入暂存区，下次提交时就会一并记录到仓库。如果这时候你要简单的对CONTRIBUTING.md修改，重新编辑存盘后，准备提交，这时候不妨先执行git status看看：
+     $ vim CONTRIBUTING.md
+     $ git status
+     On branch master
+     Changes to be committed:
+         (use "git reset HEAD <file>..." to unstage)
+
+             new file:   README
+             modified:   CONTRIBUTING.md
+
+     Changes not staged for commit:
+         (use "git add <file>..." to update what will be committed)
+         (use "git checkout -- <file>..." to discard changes in working directory)
+
+             modified:   CONTRIBUTING.md
+       我们可以看到一个很有趣的现象，临时修改的CONTRIBUTING.md同时出现在暂存区和非暂存区。实际上git只不过攒钱存了你运行git add命令时的版本，如果你现在提交，CONTRIBUTING.md 的版本是你最后一次运行 git add 命令时的那个版本，而不是你运行 git commit 时的版本，在工作目录中的当前版本。 所以，运行了 git add 之后又作了修订的文件，需要重新运行 git add 把最新版本重新暂存起来：
+     $ git add ONTRIBUTING.md
+     $ git status
+     On branch master
+     Changes to be committed:
+         (use "git reset HEAD <file>..." to unstage)
+
+            new file:   README
+            modified:   CONTRIBUTING.md
+  2.2.5 状态简览
+       git status命令输出十分详细，但他的描述语有些繁琐，如果你使用git status -s命令或git status --short命令，你将得到一种更加紧凑的输出格式，详情如下：
+    $git status -s
+      M README
+     MM Rakefile
+     A  lib/git.rb
+     M  lib/simplegit.rb
+     ?? LICENSE.txt
+
+     其中？？：表示新添加到暂存区的文件。
+          右边M：表示修改过但未放入暂存区的文件。
+          左边M：表示修过并放入暂存区的文件。
+          两个MM：表示在暂存区和工作目录都有修改记录。
+  2.2.6 忽略文件
+     一般我们会有一种需求，总会有些文件无需纳入git管理，也不希望他们总出现在未跟踪列表，比如日志文件或者编译过程创建的临时文件。这种情况我们可以创建一个名为.gitignore的文件，列出要忽略的文件模式。比如：
+     
+     at .gitignore
+     *.[oa]
+     *~
+         第一行告诉git忽略以|.o|或|.a|结尾的文件，一般这类对象文件和存档文件都是编译过程中出现的。第二行告诉git忽略所有以波浪符(~)结尾的文件，许多文本编辑软件都用这样的文件名保存副本。
+
+     文件.gitingnore的格式规范如下：
+
+	  所有空行或者以 ＃ 开头的行都会被 Git 忽略。
+
+	  可以使用标准的 glob 模式匹配。
+
+	  匹配模式可以以（/）开头防止递归。
+
+	  匹配模式可以以（/）结尾指定目录。
+
+          要忽略指定模式以外的文件或目录，可以在模式前加上惊叹号（!）取反。
+
+      所谓的 glob 模式是指 shell 所使用的简化了的正则表达式。 星号（*）匹配零个或多个任意字符；[abc] 匹配任何一个列在方括号中的字符（这个例子要么匹配一个 a，要么匹配一个 b，要么匹配一个 c）；问号（?）只匹配一个任意字符；如果在方括号中使用短划线分隔两个字符，表示所有在这两个字符范围内的都可以匹配（比如 [0-9] 表示匹配所有 0 到 9 的数字）。 使用两个星号（*) 表示匹配任意中间目录，比如`a/**/z` 可以匹配 a/z, a/b/z 或 `a/b/c/z`等。
+
+      我们再看一个 .gitignore 文件的例子：
+
+         # no .a files
+         *.a
+
+         # but do track lib.a, even though you're ignoring .a files above
+	 !lib.a
+
+	 # only ignore the TODO file in the current directory, not subdir/TODO
+	 /TODO
+
+	 # ignore all files in the build/ directory
+	 build/
+
+	 # ignore doc/notes.txt, but not doc/server/arch.txt
+	 doc/*.txt
+
+	 # ignore all .pdf files in the doc/ directory
+         doc/**/*.pdf
+
+  2.2.7 查看已暂存和未暂存的修改
+      可以利用git diff查看比git status更为详细的修改信息。 
